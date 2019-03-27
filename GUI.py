@@ -1,7 +1,8 @@
 #import packages
 from tkinter import *
 from PIL import Image, ImageTk
-
+ #her er det 
+ 
 #starting the main window.
 class Window(Frame):
     #Defining the window
@@ -87,3 +88,5 @@ root=Tk()
 root.geometry("600x800")
 app = Window(root)
 root.mainloop()
+
+
