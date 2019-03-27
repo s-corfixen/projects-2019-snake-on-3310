@@ -1,7 +1,7 @@
 #import packages
 from tkinter import *
 from PIL import Image, ImageTk
-#proof of concept
+
 #starting the main window.
 class Window(Frame):
     #Defining the window
