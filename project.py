@@ -55,6 +55,7 @@ class PageOne(tk.Frame):
         #Dataset list
         var1 = tk.IntVar()
         var1.set(1)
+        
         #Making the list
         datasets = ("example 1"), ("To be added"), ("Custom data")
         tk.Label(self, text="Choose Dataset to be used", justify = tk.LEFT, padx = 20).place(x=550, y=180)
