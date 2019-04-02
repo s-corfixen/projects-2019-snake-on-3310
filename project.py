@@ -2,7 +2,10 @@ import tkinter as tk
 from tkinter import ttk
 import pandas as pd 
 import numpy as np 
-from matplotlib import pyplot as plt 
+from matplotlib import pyplot as plt
+
+from pandas_datareader import wb
+import pydst
 
 LARGE_FONT = ("Verdana", 12)
 NORM_FONT = ("Verdana",10)
@@ -83,8 +86,16 @@ class PageOne(tk.Frame):
             popup.wm_title("!")
             label = ttk.Label(popup, text=msg, font=NORM_FONT)
             label.pack(side="top", fill="x", pady=10)
-            B1 = ttk.Button(popup, text="Okay", command = popup.destroy)
+
+            entrytext = tk.Entry(popup)
+            entrytext.pack()
+
+            B1 = ttk.Button(popup, text="Okay", command = savedataset)
             B1.pack()
+
+            def savedataset():
+                data = pydst.Dst(lang="en")
+
             popup.mainloop()        
 
         
