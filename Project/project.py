@@ -22,7 +22,7 @@ class NokiaSnakeClient(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
         
-        tk.Tk.iconbitmap(self, default="Project/snakeicon.ico")
+        tk.Tk.iconbitmap(self, "Project/snakeicon.ico")
         tk.Tk.wm_title(self, "NokiaSnake client")
 
         #defining container
@@ -150,9 +150,9 @@ class PageTwo(tk.Frame):
                 if list2 != []:
                     selectedvariables.update({str(dict2[header]): list2})        
             
-            savepath = "C:/Users/Corfixen/Documents/projects-2019-snake-on-3310/"+str(tableid)+".xlsx"
-            DATA = Dst.get_data(table_id=tableid, variables = selectedvariables)
-            DATA.to_excel(savepath, sheet_name='Sheet1')
+            savepath = "C:/Users/Corfixen/Documents/projects-2019-snake-on-3310/"+str(tableid)+".csv"
+            DATA = Dst.get_csv(path = savepath, table_id=tableid, variables = selectedvariables)
+            #DATA.to_excel(savepath, sheet_name='Sheet1')
         button2 = ttk.Button(self, text = "Next Page", 
                              command = nextpage)
         button2.place(x=1180,y=680)
@@ -235,8 +235,6 @@ class ScrollableFrame(tk.Frame):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
 
-#if __name__ == "__main__":
-#    root = tk.Tk()
     
 #Basic app is set to the class NokiaSnakeclient
 app = NokiaSnakeClient()
