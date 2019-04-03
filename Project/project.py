@@ -4,14 +4,16 @@ import pandas as pd
 import numpy as np 
 from matplotlib import pyplot as plt
 import pydst
+from matplotlib import style
 
-Dst = pydst.Dst(lang='en')
+Dst = pydst.Dst(lang='da')
 
 LARGE_FONT = ("Verdana", 12)
 NORM_FONT = ("Verdana",10)
-SMALL_FONT = ("Verdana",6)
+SMALL_FONT = ("Verdana",8)
 
 dict1 = {}
+dict2 = {}
 tableid = "failure"
 
 class NokiaSnakeClient(tk.Tk):
@@ -49,7 +51,7 @@ class NokiaSnakeClient(tk.Tk):
 class PageOne(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-        label = tk.Label(self, text = "Choosing Dataset", font = "LARGE_FONT")
+        label = tk.Label(self, text = "Choosing Dataset", font = LARGE_FONT)
         label.pack(pady=10,padx=10)
 
         #defining navigation button
@@ -98,7 +100,7 @@ class PageOne(tk.Frame):
                 tableid = entry1.get()
                 data = Dst.get_variables(table_id=tableid)
                 text = list(data["text"])
-
+                
                 for i in text:
                     dataframe = data.loc[data["text"] == i,"values"]
                     data_list = list(dataframe)
@@ -107,7 +109,10 @@ class PageOne(tk.Frame):
                         for item in sublist:
                             i_list.append(item)
                     dict1.update({i: i_list})
-
+                for i in text:
+                    idapi = data.loc[data["text"]== i, "id"].item()
+                    dict2.update({i: idapi})
+                
                 popup.destroy()
 
             button = tk.Button(popup, text="Load", command = ok)
@@ -121,7 +126,7 @@ class PageTwo(tk.Frame):
     
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-        label = tk.Label(self, text = "Customize Dataset", font="LARGE_FONT")
+        label = tk.Label(self, text = "Customize Dataset", font=LARGE_FONT)
         label.pack(pady=10,padx=10)
 
         button1 = ttk.Button(self, text = "Back", 
@@ -130,12 +135,24 @@ class PageTwo(tk.Frame):
         
         def nextpage():
             controller.show_frame(PageThree)
-            ####selectedvariables = {}
-            ###for value in selected==True:
-               ### item = 
-            #print(selectedvariables)
-            #dataset = Dst.get_data(table_id=tableid, variables=selectedvariables)
-
+            selectedvariables = {}
+            
+            for header, elist in dict1.items():
+                
+                list1 = []
+                for key in selected:
+                    if selected[key].get()==True:
+                        list1.append(key)
+                list2 = []
+                for dic in elist:
+                    if dic["text"] in list1:
+                        list2.append(dic["id"])
+                if list2 != []:
+                    selectedvariables.update({str(dict2[header]): list2})        
+            
+            savepath = "C:/Users/Corfixen/Documents/projects-2019-snake-on-3310/"+str(tableid)+".xlsx"
+            DATA = Dst.get_data(table_id=tableid, variables = selectedvariables)
+            DATA.to_excel(savepath, sheet_name='Sheet1')
         button2 = ttk.Button(self, text = "Next Page", 
                              command = nextpage)
         button2.place(x=1180,y=680)
@@ -145,7 +162,7 @@ class PageTwo(tk.Frame):
         def generate():
             for index, key in enumerate(dict1):
                 if index > 3:
-                    label = tk.Label(self, text = key, font = "NORM_FONT")
+                    label = tk.Label(self, text = key, font = SMALL_FONT)
                     label.place(x=50+290*(index-4), y=360)
                     checkboxlist_index = ScrollableFrame(self)
                     checkboxlist_index.place(x=50+290*(index-4), y=380)
@@ -156,7 +173,7 @@ class PageTwo(tk.Frame):
                         selected[value["text"]] = is_selected
 
                 else:
-                    label = tk.Label(self, text = key, font = "NORM_FONT")
+                    label = tk.Label(self, text = key, font = SMALL_FONT)
                     label.place(x=50+290*index, y=80)
                     checkboxlist_index = ScrollableFrame(self)
                     checkboxlist_index.place(x=50+290*index,y=100)
@@ -175,7 +192,7 @@ class PageThree(tk.Frame):
     
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-        label = tk.Label(self, text = "Statistics and Graphs", font = "LARGE_FONT")
+        label = tk.Label(self, text = "Statistics and Graphs", font = LARGE_FONT)
         label.pack(pady=10,padx=10)
 
         button1 = ttk.Button(self, text = "Back", 
