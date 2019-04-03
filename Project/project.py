@@ -151,7 +151,7 @@ class PageTwo(tk.Frame):
                     selectedvariables.update({str(dict2[header]): list2})        
             
             savepath = "C:/Users/Corfixen/Documents/projects-2019-snake-on-3310/"+str(tableid)+".csv"
-            DATA = Dst.get_csv(path = savepath, table_id=tableid, variables = selectedvariables)
+            Dst.get_csv(path = savepath, table_id=tableid, variables = selectedvariables)
             #DATA.to_excel(savepath, sheet_name='Sheet1')
         button2 = ttk.Button(self, text = "Next Page", 
                              command = nextpage)
