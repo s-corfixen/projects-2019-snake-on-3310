@@ -3,13 +3,16 @@ from tkinter import ttk
 import pandas as pd 
 import numpy as np 
 from matplotlib import pyplot as plt
-
-from pandas_datareader import wb
 import pydst
+
+Dst = pydst.Dst(lang='en')
 
 LARGE_FONT = ("Verdana", 12)
 NORM_FONT = ("Verdana",10)
 SMALL_FONT = ("Verdana",6)
+
+dict1 = {}
+tableid = "failure"
 
 class NokiaSnakeClient(tk.Tk):
 
@@ -17,7 +20,7 @@ class NokiaSnakeClient(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
         
-        tk.Tk.iconbitmap(self, default="snakeicon.ico")
+        tk.Tk.iconbitmap(self, default="Project/snakeicon.ico")
         tk.Tk.wm_title(self, "NokiaSnake client")
 
         #defining container
@@ -44,7 +47,6 @@ class NokiaSnakeClient(tk.Tk):
         frame.tkraise()
 
 class PageOne(tk.Frame):
-    
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         label = tk.Label(self, text = "Choosing Dataset", font = "LARGE_FONT")
@@ -69,7 +71,7 @@ class PageOne(tk.Frame):
             elif var1.get()==1:
                 pd.read_csv("example data2.csv")
             else:
-                popupmsg("Function not supported yet")
+                popupmsg()
 
         for val, dataset in enumerate(datasets):
             tk.Radiobutton(self, 
@@ -80,25 +82,38 @@ class PageOne(tk.Frame):
         
         
                 
-        def popupmsg(msg):
+        def popupmsg():
             popup = tk.Tk()
 
-            popup.wm_title("!")
-            label = ttk.Label(popup, text=msg, font=NORM_FONT)
-            label.pack(side="top", fill="x", pady=10)
+            popup.wm_title("Load dataset")
+            label = ttk.Label(popup, text="BETA feature", font=NORM_FONT)
+            label.pack(side="top", fill="x", pady=10)       
 
-            entrytext = tk.Entry(popup)
-            entrytext.pack()
+            entry1 = tk.Entry(popup)
+            entry1.pack()
 
-            B1 = ttk.Button(popup, text="Okay", command = savedataset)
-            B1.pack()
+            
+            def ok():               
+                global tableid
+                tableid = entry1.get()
+                data = Dst.get_variables(table_id=tableid)
+                text = list(data["text"])
 
-            def savedataset():
-                data = pydst.Dst(lang="en")
+                for i in text:
+                    dataframe = data.loc[data["text"] == i,"values"]
+                    data_list = list(dataframe)
+                    i_list = []
+                    for sublist in data_list:
+                        for item in sublist:
+                            i_list.append(item)
+                    dict1.update({i: i_list})
+
+                popup.destroy()
+
+            button = tk.Button(popup, text="Load", command = ok)
+            button.pack()
 
             popup.mainloop()        
-
-        
 
 
 
@@ -106,28 +121,55 @@ class PageTwo(tk.Frame):
     
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-        label = tk.Label(self, text = "Customize Dataset", font = "LARGE_FONT")
+        label = tk.Label(self, text = "Customize Dataset", font="LARGE_FONT")
         label.pack(pady=10,padx=10)
 
         button1 = ttk.Button(self, text = "Back", 
                              command = lambda: controller.show_frame(PageOne))
         button1.place(x=20, y=680)
+        
+        def nextpage():
+            controller.show_frame(PageThree)
+            ####selectedvariables = {}
+            ###for value in selected==True:
+               ### item = 
+            #print(selectedvariables)
+            #dataset = Dst.get_data(table_id=tableid, variables=selectedvariables)
 
         button2 = ttk.Button(self, text = "Next Page", 
-                             command = lambda: controller.show_frame(PageThree))
+                             command = nextpage)
         button2.place(x=1180,y=680)
-
         
+        selected = {}
         #scrollable list
-        checkboxlist1 = ScrollableFrame(self)
-        checkboxlist1.place(x=50,y=100)
+        def generate():
+            for index, key in enumerate(dict1):
+                if index > 3:
+                    label = tk.Label(self, text = key, font = "NORM_FONT")
+                    label.place(x=50+290*(index-4), y=360)
+                    checkboxlist_index = ScrollableFrame(self)
+                    checkboxlist_index.place(x=50+290*(index-4), y=380)
 
-        def button_callback():
-          for key, value in Dict1:
-              ttk.Checkbutton(checkboxlist1.interior, text=key).grid(row=x, column=0)
+                    for index, value in enumerate(dict1[key]):
+                        is_selected = tk.BooleanVar()
+                        ttk.Checkbutton(checkboxlist_index.interior, text=value["text"], variable=is_selected).grid(row=index,column=0,sticky="W")
+                        selected[value["text"]] = is_selected
 
-        checkbox = ttk.Button(checkboxlist1.interior, text="Update", command=button_callback)
-        checkbox.grid(row=0, column=0)
+                else:
+                    label = tk.Label(self, text = key, font = "NORM_FONT")
+                    label.place(x=50+290*index, y=80)
+                    checkboxlist_index = ScrollableFrame(self)
+                    checkboxlist_index.place(x=50+290*index,y=100)
+
+                    for index, value in enumerate(dict1[key]):
+                        is_selected = tk.BooleanVar()
+                        ttk.Checkbutton(checkboxlist_index.interior, text=value["text"], variable=is_selected).grid(row=index,column=0,sticky="W")
+                        selected[value["text"]] = is_selected
+        
+        button3 = ttk.Button(self, text = "generate lists", command = generate)
+        button3.place(x=50,y=50)
+
+            
 
 class PageThree(tk.Frame):
     
@@ -150,11 +192,15 @@ class ScrollableFrame(tk.Frame):
         # create a canvas object and a vertical scrollbar for scrolling it
         self.vscrollbar = tk.Scrollbar(self, orient=tk.VERTICAL)
         self.vscrollbar.pack(side='right', fill="y",  expand="false")
+        self.hscrollbar = tk.Scrollbar(self, orient=tk.HORIZONTAL)
+        self.hscrollbar.pack(side='bottom', fill="x",  expand="false")
+
         self.canvas = tk.Canvas(self, bd=0,
-                                height=300, width=150,
+                                height=220, width=200,
                                 yscrollcommand=self.vscrollbar.set)
         self.canvas.pack(side="left", fill="both", expand="true")
         self.vscrollbar.config(command=self.canvas.yview)
+        self.hscrollbar.config(command=self.canvas.xview)
 
         # reset the view
         #self.canvas.xview_moveto(0)
