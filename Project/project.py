@@ -141,16 +141,16 @@ class PageTwo(tk.Frame):
                 
                 list1 = []
                 for key in selected:
-                    if selected[key].get()==True:
+                    if selected[key].get():
                         list1.append(key)
                 list2 = []
                 for dic in elist:
                     if dic["text"] in list1:
                         list2.append(dic["id"])
                 if list2 != []:
-                    selectedvariables.update({str(dict2[header]): list2})        
-            
-            savepath = "C:/Users/Corfixen/Documents/projects-2019-snake-on-3310/"+str(tableid)+".csv"
+                    selectedvariables.update({str(dict2[header]): list2})    
+            print(selectedvariables)
+            savepath = "./"+str(tableid)+".csv"
             Dst.get_csv(path = savepath, table_id=tableid, variables = selectedvariables)
             #DATA.to_excel(savepath, sheet_name='Sheet1')
         button2 = ttk.Button(self, text = "Next Page", 

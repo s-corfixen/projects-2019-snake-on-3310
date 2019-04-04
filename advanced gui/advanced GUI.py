@@ -54,7 +54,7 @@ def animate(i):
     a.plot_date(buyDates, buys["price"], "#00A3E0", label="buys")
     a.legend(bbox_to_anchor=(0, 1.20, 1, 0.102), loc=3, 
             ncol=2, borderaxespad=0)
-    title = "Bitcoin USD price\nLast Price: "+str(data["price"][499])
+    title = "Bitcoin USD price\nLast Price: "+str(data["price"][0])
     a.set_title(title)
     
 
@@ -68,7 +68,7 @@ class SeaofBTCapp(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
         
-        tk.Tk.iconbitmap(self, default="snakeicon.ico")
+        #tk.Tk.iconbitmap(self, default="snakeicon.ico")
         tk.Tk.wm_title(self, "NokiaSnake client")
 
         #defining container
