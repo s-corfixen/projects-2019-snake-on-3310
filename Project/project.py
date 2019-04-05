@@ -1,67 +1,77 @@
+#import several libraries need for the program to function. 
 import tkinter as tk
 from tkinter import ttk
 import pandas as pd 
 import numpy as np 
 from matplotlib import pyplot as plt
-import pydst
 from matplotlib import style
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+import pydst
 
-Dst = pydst.Dst(lang='da')
+#set the default language for the DST API
+Dst = pydst.Dst(lang='en')
 
+#Text fonts later referenced in the code
 LARGE_FONT = ("Verdana", 12)
 NORM_FONT = ("Verdana",9)
 SMALL_FONT = ("Verdana",8)
 
-dict1 = {}
-dict2 = {}
+#We create several global variables which will be referenced and changed.
+metadatadictionary = {}
+apidictionary = {}
 tableid = "empty"
 dataset = pd.DataFrame
+datasetpivot = pd.DataFrame
 
+#We create the main class, which defines the container in which all frames are defined. Think of it as the app itself.
 class NokiaSnakeClient(tk.Tk):
 
-    #defining the initialization method with room for args and kwargs
+    #defining the initialization method with room for the inherited args and kwargs from tk.Tk
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
         
+        #We set the icon and title for the app frame
         tk.Tk.iconbitmap(self, "./Project/snakeicon.ico")
         tk.Tk.wm_title(self, "NokiaSnake client")
 
-        #defining container
+        #defining the container later used to create the frames in the app
         container = tk.Frame(self)
         container.pack(side = "top", fill = "both", expand = True)
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
 
+        #We define the dictionary, which will be updated to contain our frames.
         self.frames = {}
 
-        for F in (PageOne, PageTwo, PageThree, PageFour):
-
+        #Using a for loop, we create all the frames with the container previously defined
+        for F in (PageOne, PageTwo, PageThree):
             frame = F(container, self)
-
             self.frames[F] = frame
-
             frame.grid(row = 0, column = 0, sticky = "nsew")
-
+        #We set the default frame to be PageOne
         self.show_frame(PageOne)
-
+    #We create a function which shows the frame called in the "cont" argument
     def show_frame(self, cont):
-        
         frame = self.frames[cont]
         frame.tkraise()
     
+    #The clearall function resets all global variables to their default value and shows the frame defined in the "cont" argument
     def clearall(self, cont):
-        global dict1
-        dict1 = {} 
-        global dict2
-        dict2 = {}
+        global metadatadictionary
+        metadatadictionary = {} 
+        global apidictionary
+        apidictionary = {}
         global tableid
         tableid = "empty"
         global dataset
         dataset = pd.DataFrame
+        global datasetpivot
+        datasetpivot = pd.DataFrame
 
         frame = self.frames[cont]
         frame.tkraise()
 
+#
 class PageOne(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -70,7 +80,7 @@ class PageOne(tk.Frame):
 
         def nextpage():
             if var1.get()==0:
-                controller.show_frame(PageFour)
+                controller.show_frame(PageThree)
             else:
                 controller.show_frame(PageTwo)
 
@@ -132,11 +142,10 @@ class PageOne(tk.Frame):
                         for sublist in data_list:
                             for item in sublist:
                                 i_list.append(item)
-                        dict1.update({i: i_list})
+                        metadatadictionary.update({i: i_list})
                     for i in text:
                         idapi = data.loc[data["text"]== i, "id"].item()
-                        dict2.update({i: idapi})
-                    print(dict2)
+                        apidictionary.update({i: idapi})
                     popup.destroy()
                 
                 except:
@@ -161,8 +170,6 @@ class PageTwo(tk.Frame):
         button1 = ttk.Button(self, text = "Back", command = lambda: controller.show_frame(PageOne))
         button1.place(x=20, y=680)
         
-        button2 = ttk.Button(self, text = "Next Page", command = lambda: controller.show_frame(PageThree))
-        button2.place(x=1180,y=680)
 
         clearallbutton = ttk.Button(self, text = "Clear All", command = lambda: controller.clearall(PageOne))
         clearallbutton.place(x=20, y=650)
@@ -170,7 +177,7 @@ class PageTwo(tk.Frame):
         def getdataset():
             selectedvariables = {}
             
-            for header, elist in dict1.items():
+            for header, elist in metadatadictionary.items():
                 
                 list1 = []
                 for key in selected:
@@ -181,11 +188,10 @@ class PageTwo(tk.Frame):
                     if dic["text"] in list1:
                         list2.append(dic["id"])
                 if list2 != []:
-                    selectedvariables.update({str(dict2[header]): list2})    
+                    selectedvariables.update({str(apidictionary[header]): list2})    
             global dataset
             dataset = Dst.get_data(table_id=tableid, variables = selectedvariables)
-            #DATA.to_excel(savepath, sheet_name='Sheet1')
-            print(dataset.dtypes)
+            
         getdatabutton = ttk.Button(self, text = "Get Data", command = getdataset)
         getdatabutton.place(x=600,y=650)
         
@@ -199,14 +205,14 @@ class PageTwo(tk.Frame):
         selected = {}
         #scrollable list
         def generate():
-            for index, key in enumerate(dict1):
+            for index, key in enumerate(metadatadictionary):
                 if index > 3:
                     label = tk.Label(self, text = key, font = SMALL_FONT)
                     label.place(x=50+290*(index-4), y=360)
                     checkboxlist_index = ScrollableFrame(self)
                     checkboxlist_index.place(x=50+290*(index-4), y=380)
 
-                    for index, value in enumerate(dict1[key]):
+                    for index, value in enumerate(metadatadictionary[key]):
                         is_selected = tk.BooleanVar()
                         ttk.Checkbutton(checkboxlist_index.interior, text=value["text"], variable=is_selected).grid(row=index,column=0,sticky="W")
                         selected[value["text"]] = is_selected
@@ -217,7 +223,7 @@ class PageTwo(tk.Frame):
                     checkboxlist_index = ScrollableFrame(self)
                     checkboxlist_index.place(x=50+290*index,y=100)
 
-                    for index, value in enumerate(dict1[key]):
+                    for index, value in enumerate(metadatadictionary[key]):
                         is_selected = tk.BooleanVar()
                         ttk.Checkbutton(checkboxlist_index.interior, text=value["text"], variable=is_selected).grid(row=index,column=0,sticky="W")
                         selected[value["text"]] = is_selected
@@ -225,28 +231,17 @@ class PageTwo(tk.Frame):
         button3 = ttk.Button(self, text = "generate lists", command = generate)
         button3.place(x=50,y=50)
 
-            
+
 
 class PageThree(tk.Frame):
     
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-        label = tk.Label(self, text = "Statistics and Graphs", font = LARGE_FONT)
-        label.pack(pady=10,padx=10)
-
-        button1 = ttk.Button(self, text = "Back", 
-                             command = lambda: controller.show_frame(PageTwo))
-        button1.place(x=20, y=680)
-
-        clearallbutton = ttk.Button(self, text = "Clear All", command = lambda: controller.clearall(PageOne))
-        clearallbutton.place(x=20, y=650)
-
-class PageFour(tk.Frame):
-    
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
-        label = tk.Label(self, text = "NAN1", font = LARGE_FONT)
-        label.pack(pady=10,padx=10)
+        Pagetitle = tk.Label(self, text = "NAN1 Table from DST", font = LARGE_FONT)
+        Pagetitle.pack(pady=10,padx=10)
+        graphlabel = tk.Label(self, text = "Create Graph", font = NORM_FONT)
+        graphlabel.place(x=825,y=70)
+        
 
         button1 = ttk.Button(self, text = "Back", 
                              command = lambda: controller.show_frame(PageOne))
@@ -278,24 +273,61 @@ class PageFour(tk.Frame):
         generatebutton = ttk.Button(self, text = "generate lists", command = generate)
         generatebutton.place(x=50,y=20)
         
+        textwindow = ScrollableFrame(self)
+        textwindow.place(x=550,y=360)
+        text = tk.Text(textwindow.interior, wrap="none", borderwidth=0)
+        text.pack(expand=True, fill="both")
 
         def slicedata():
+            
+            global datasetpivot
+            datasetpivot = pd.DataFrame
             rows = []
             for key in selected:
                 if selected[key].get()==True:
                     rows.append(key)
-            
-            datasetsort = dataset[dataset["PRISENHED"]==var1.get()]
-            datasetsort["INDHOLD"]=pd.to_numeric(datasetsort["INDHOLD"], errors="coerce")
-            datasetsort.dropna(inplace=True)
 
-            column = dataset.loc[:,"TRANSAKT"==rows]
-            print(column.head(10))
-            datasetpivot = datasetsort.pivot(index="TID", columns=dataset.loc[["TRANSAKT"==rows]], values = "INDHOLD")
-            print(datasetpivot.head(20))
+            datasetsort = dataset.loc[dataset["TRANSAKT"].isin(rows)]
+            datasetsort1 = datasetsort[datasetsort["PRISENHED"]==var1.get()] 
+            datasetsort1["INDHOLD"]=pd.to_numeric(datasetsort1["INDHOLD"], errors="coerce")
+            datasetsort1.dropna(inplace=True)
+            
+            datasetpivot = datasetsort1.pivot(index="TID", columns="TRANSAKT", values = "INDHOLD")
+            
+            text.delete('1.0', tk.END)
+            text.insert(tk.END, datasetpivot.describe())
+            print(datasetpivot.describe())
+            
         slicebutton = ttk.Button(self, text = "slice dataset", command = slicedata)
         slicebutton.place(x=400, y=320)
         
+        graphtypes = ["line", "stacked area", "pct. stacked area"]
+
+        graphmenuvariable = tk.StringVar()
+        graphmenuvariable.set(graphtypes[0])
+
+        graphmenu = tk.OptionMenu(self, graphmenuvariable, *graphtypes)
+        graphmenu.place(x=800,y=100)
+
+        def makegraph():
+            
+            if graphmenuvariable.get()=="line":
+                datasetpivot.plot(kind="line")
+                plt.ylabel(var1.get())
+                plt.show()
+            elif graphmenuvariable.get()=="stacked area":
+                datasetpivot.plot.area()
+                plt.ylabel(var1.get())
+                plt.show()
+            elif graphmenuvariable.get()=="pct. stacked area":
+                datasetpivot_pct = datasetpivot.divide(datasetpivot.sum(axis=1), axis=0)
+                datasetpivot_pct.plot.area()
+                plt.ylabel(var1.get())
+                plt.show()            
+        
+
+        button = ttk.Button(self, text="Make Graph", command=makegraph)
+        button.place(x=870,y=102)     
 
         
 
@@ -304,7 +336,7 @@ class PageFour(tk.Frame):
 
 
 class ScrollableFrame(tk.Frame):
-    def __init__(self, master, **kwargs):
+    def __init__(self, master,**kwargs):
         tk.Frame.__init__(self, master, **kwargs)
 
         # create a canvas object and a vertical scrollbar for scrolling it
@@ -312,10 +344,9 @@ class ScrollableFrame(tk.Frame):
         self.vscrollbar.pack(side='right', fill="y",  expand="false")
         self.hscrollbar = tk.Scrollbar(self, orient=tk.HORIZONTAL)
         self.hscrollbar.pack(side='bottom', fill="x",  expand="false")
-
-        self.canvas = tk.Canvas(self, bd=0,
-                                height=220, width=200,
-                                yscrollcommand=self.vscrollbar.set)
+        self.canvas = tk.Canvas(self, width=200, height=220,
+                                yscrollcommand=self.vscrollbar.set,
+                                xscrollcommand=self.hscrollbar.set)
         self.canvas.pack(side="left", fill="both", expand="true")
         self.vscrollbar.config(command=self.canvas.yview)
         self.hscrollbar.config(command=self.canvas.xview)
@@ -325,11 +356,11 @@ class ScrollableFrame(tk.Frame):
         self.canvas.create_window(0, 0, window=self.interior, anchor="nw")
 
         self.bind("<Configure>", self.set_scrollregion)
-
-
+        
     def set_scrollregion(self, event=None):
         """ Set the scroll region on the canvas"""
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+
 
 
     
