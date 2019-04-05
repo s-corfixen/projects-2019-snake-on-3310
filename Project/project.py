@@ -14,7 +14,7 @@ SMALL_FONT = ("Verdana",8)
 
 dict1 = {}
 dict2 = {}
-tableid = "failure"
+tableid = "empty"
 dataset = pd.DataFrame
 
 class NokiaSnakeClient(tk.Tk):
@@ -34,7 +34,7 @@ class NokiaSnakeClient(tk.Tk):
 
         self.frames = {}
 
-        for F in (PageOne, PageTwo, PageThree):
+        for F in (PageOne, PageTwo, PageThree, PageFour):
 
             frame = F(container, self)
 
@@ -55,7 +55,7 @@ class NokiaSnakeClient(tk.Tk):
         global dict2
         dict2 = {}
         global tableid
-        tableid = "failure"
+        tableid = "empty"
         global dataset
         dataset = pd.DataFrame
 
@@ -68,9 +68,14 @@ class PageOne(tk.Frame):
         label = tk.Label(self, text = "Choosing Dataset", font = LARGE_FONT)
         label.pack(pady=10,padx=10)
 
+        def nextpage():
+            if var1.get()==0:
+                controller.show_frame(PageFour)
+            else:
+                controller.show_frame(PageTwo)
+
         #defining navigation button
-        button1 = ttk.Button(self, text = "Next Page", 
-                             command = lambda: controller.show_frame(PageTwo))
+        button1 = ttk.Button(self, text = "Next Page", command = nextpage)
         button1.place(x=1180,y=680)
 
         clearallbutton = ttk.Button(self, text = "Clear All", command = lambda: controller.clearall(PageOne))
@@ -82,19 +87,19 @@ class PageOne(tk.Frame):
         var1.set(1)
         
         #Making the list
-        datasets = ("example 1"), ("To be added"), ("Custom data")
+        datasets = ("NAN1"), ("Custom data")
         tk.Label(self, text="Choose Dataset to be used", justify = tk.LEFT, padx = 20).place(x=550, y=180)
 
         def LoadDataset():
             if var1.get()==0:
-                pd.read_csv("example data.csv")
-            elif var1.get()==1:
-                pd.read_csv("example data2.csv")
+                global dataset
+                dataset = Dst.get_data(table_id = "NAN1", variables={'TRANSAKT': ["*"], 'PRISENHED': ["*"], 'Tid': ["*"]}, lang="en")
+
             else:
                 popupmsg()
 
         for val, dataset in enumerate(datasets):
-            tk.Radiobutton(self, 
+            ttk.Radiobutton(self, 
                 text=dataset,
                 variable=var1, 
                 command = LoadDataset,
@@ -135,8 +140,8 @@ class PageOne(tk.Frame):
                     popup.destroy()
                 
                 except:
-                    errormessage = ttk.Label(popup, foreground = "red", text="Table not Found", font=NORM_FONT)
-                    errormessage.place(x=40,y=70)
+                    errormessage = ttk.Label(popup, foreground = "red", text="Table not found", font=NORM_FONT)
+                    errormessage.place(x=42,y=70)
 
             button = tk.Button(popup, text="Load", command = ok)
             button.place(x=80,y=120)
@@ -180,6 +185,7 @@ class PageTwo(tk.Frame):
             global dataset
             dataset = Dst.get_data(table_id=tableid, variables = selectedvariables)
             #DATA.to_excel(savepath, sheet_name='Sheet1')
+            print(dataset.dtypes)
         getdatabutton = ttk.Button(self, text = "Get Data", command = getdataset)
         getdatabutton.place(x=600,y=650)
         
@@ -231,12 +237,71 @@ class PageThree(tk.Frame):
         button1 = ttk.Button(self, text = "Back", 
                              command = lambda: controller.show_frame(PageTwo))
         button1.place(x=20, y=680)
-        
-        button2 = ttk.Button(self, text = "Reset")
-        button2.place(x=1180,y=680)
 
         clearallbutton = ttk.Button(self, text = "Clear All", command = lambda: controller.clearall(PageOne))
         clearallbutton.place(x=20, y=650)
+
+class PageFour(tk.Frame):
+    
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        label = tk.Label(self, text = "NAN1", font = LARGE_FONT)
+        label.pack(pady=10,padx=10)
+
+        button1 = ttk.Button(self, text = "Back", 
+                             command = lambda: controller.show_frame(PageOne))
+        button1.place(x=20, y=680)
+        
+        clearallbutton = ttk.Button(self, text = "Clear All", command = lambda: controller.clearall(PageOne))
+        clearallbutton.place(x=20, y=650)
+
+        var1 = tk.StringVar()
+        selected = {}
+
+        def generate():
+            label = tk.Label(self, text="Price Unit", font = SMALL_FONT)
+            label.place(x=50, y=50)
+            prislist_index = ScrollableFrame(self)
+            prislist_index.place(x=50, y=70)
+            for index, titel in enumerate(dataset["PRISENHED"].unique()):
+                ttk.Radiobutton(prislist_index.interior, text=titel, variable=var1, value=titel).grid(row=index, column=0, sticky="w")
+
+            label = tk.Label(self, text="Transaction", font = SMALL_FONT)
+            label.place(x=300, y=50)
+            translist_index = ScrollableFrame(self)
+            translist_index.place(x=300,y=70)
+            for index, titel in enumerate(dataset["TRANSAKT"].unique()):
+                is_selected = tk.BooleanVar()
+                tk.Checkbutton(translist_index.interior, text=titel, variable=is_selected).grid(row=index,column=0,sticky="W")
+                selected.update({titel: is_selected})
+
+        generatebutton = ttk.Button(self, text = "generate lists", command = generate)
+        generatebutton.place(x=50,y=20)
+        
+
+        def slicedata():
+            rows = []
+            for key in selected:
+                if selected[key].get()==True:
+                    rows.append(key)
+            
+            datasetsort = dataset[dataset["PRISENHED"]==var1.get()]
+            datasetsort["INDHOLD"]=pd.to_numeric(datasetsort["INDHOLD"], errors="coerce")
+            datasetsort.dropna(inplace=True)
+
+            column = dataset.loc[:,"TRANSAKT"==rows]
+            print(column.head(10))
+            datasetpivot = datasetsort.pivot(index="TID", columns=dataset.loc[["TRANSAKT"==rows]], values = "INDHOLD")
+            print(datasetpivot.head(20))
+        slicebutton = ttk.Button(self, text = "slice dataset", command = slicedata)
+        slicebutton.place(x=400, y=320)
+        
+
+        
+
+        
+
+
 
 class ScrollableFrame(tk.Frame):
     def __init__(self, master, **kwargs):
