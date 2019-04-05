@@ -9,13 +9,13 @@ from matplotlib import style
 Dst = pydst.Dst(lang='da')
 
 LARGE_FONT = ("Verdana", 12)
-NORM_FONT = ("Verdana",9)
+NORM_FONT = ("Verdana",10)
 SMALL_FONT = ("Verdana",8)
 
 dict1 = {}
 dict2 = {}
+dict3 = {}
 tableid = "failure"
-dataset = pd.DataFrame
 
 class NokiaSnakeClient(tk.Tk):
 
@@ -23,7 +23,7 @@ class NokiaSnakeClient(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
         
-        tk.Tk.iconbitmap(self, "./Project/snakeicon.ico")
+        tk.Tk.iconbitmap(self, "Project/snakeicon.ico")
         tk.Tk.wm_title(self, "NokiaSnake client")
 
         #defining container
@@ -48,19 +48,6 @@ class NokiaSnakeClient(tk.Tk):
         
         frame = self.frames[cont]
         frame.tkraise()
-    
-    def clearall(self, cont):
-        global dict1
-        dict1 = {} 
-        global dict2
-        dict2 = {}
-        global tableid
-        tableid = "failure"
-        global dataset
-        dataset = pd.DataFrame
-
-        frame = self.frames[cont]
-        frame.tkraise()
 
 class PageOne(tk.Frame):
     def __init__(self, parent, controller):
@@ -73,10 +60,6 @@ class PageOne(tk.Frame):
                              command = lambda: controller.show_frame(PageTwo))
         button1.place(x=1180,y=680)
 
-        clearallbutton = ttk.Button(self, text = "Clear All", command = lambda: controller.clearall(PageOne))
-        clearallbutton.place(x=20, y=650)
-        
-        
         #Dataset list
         var1 = tk.IntVar()
         var1.set(1)
@@ -106,42 +89,36 @@ class PageOne(tk.Frame):
             popup = tk.Tk()
 
             popup.wm_title("Load dataset")
-            label = ttk.Label(popup, text="Warning: Experimental Feature", font=NORM_FONT)
-            label.place(x=0,y=0)      
+            label = ttk.Label(popup, text="BETA feature", font=NORM_FONT)
+            label.pack(side="top", fill="x", pady=10)       
 
             entry1 = tk.Entry(popup)
-            entry1.place(x=38,y=50)
+            entry1.pack()
 
             
             def ok():               
                 global tableid
                 tableid = entry1.get()
-                try:
-                    data = Dst.get_variables(table_id=tableid)
-                    text = list(data["text"])
-                    
-                    for i in text:
-                        dataframe = data.loc[data["text"] == i,"values"]
-                        data_list = list(dataframe)
-                        i_list = []
-                        for sublist in data_list:
-                            for item in sublist:
-                                i_list.append(item)
-                        dict1.update({i: i_list})
-                    for i in text:
-                        idapi = data.loc[data["text"]== i, "id"].item()
-                        dict2.update({i: idapi})
-                    print(dict2)
-                    popup.destroy()
+                data = Dst.get_variables(table_id=tableid)
+                text = list(data["text"])
                 
-                except:
-                    errormessage = ttk.Label(popup, foreground = "red", text="Table not Found", font=NORM_FONT)
-                    errormessage.place(x=40,y=70)
+                for i in text:
+                    dataframe = data.loc[data["text"] == i,"values"]
+                    data_list = list(dataframe)
+                    i_list = []
+                    for sublist in data_list:
+                        for item in sublist:
+                            i_list.append(item)
+                    dict1.update({i: i_list})
+                for i in text:
+                    idapi = data.loc[data["text"]== i, "id"].item()
+                    dict2.update({i: idapi})
+                
+                popup.destroy()
 
             button = tk.Button(popup, text="Load", command = ok)
-            button.place(x=80,y=120)
+            button.pack()
 
-            popup.geometry("200x150")
             popup.mainloop()        
 
 
@@ -153,44 +130,51 @@ class PageTwo(tk.Frame):
         label = tk.Label(self, text = "Customize Dataset", font=LARGE_FONT)
         label.pack(pady=10,padx=10)
 
-        button1 = ttk.Button(self, text = "Back", command = lambda: controller.show_frame(PageOne))
+        button1 = ttk.Button(self, text = "Back", 
+                             command = lambda: controller.show_frame(PageOne))
         button1.place(x=20, y=680)
         
-        button2 = ttk.Button(self, text = "Next Page", command = lambda: controller.show_frame(PageThree))
-        button2.place(x=1180,y=680)
-
-        clearallbutton = ttk.Button(self, text = "Clear All", command = lambda: controller.clearall(PageOne))
-        clearallbutton.place(x=20, y=650)
-
-        def getdataset():
-            selectedvariables = {}
+        def nextpage():
+            controller.show_frame(PageThree)
+            #selectedvariables = {}
             
-            for header, elist in dict1.items():
+            #for header, elist in dict1.items():
                 
-                list1 = []
-                for key in selected:
-                    if selected[key].get():
-                        list1.append(key)
+            #    list1 = []
+            #    for key in selected:
+            #        if selected[key].get():
+            #            list1.append(key)
+            #    list2 = []
+            #    for dic in elist:
+            #        if dic["text"] in list1:
+            #            list2.append(dic["id"])
+            #    if list2 != []:
+            #        selectedvariables.update({str(dict2[header]): list2})        
+            #
+            #savepath = "./"+str(tableid)+".csv"
+            #Dst.get_csv(path = savepath, table_id=tableid, variables = selectedvariables)
+            #DATA.to_excel(savepath, sheet_name='Sheet1')
+        button2 = ttk.Button(self, text = "Next Page", 
+                             command = nextpage)
+        button2.place(x=1180,y=680)
+        
+        def Get():  # Read back the listbox
+            selectedvariables = {}
+            for header, elist in dict1.items():
+                seledata = dict3[header]
                 list2 = []
                 for dic in elist:
-                    if dic["text"] in list1:
+                    if dic["text"] in seledata:
                         list2.append(dic["id"])
                 if list2 != []:
-                    selectedvariables.update({str(dict2[header]): list2})    
-            global dataset
-            dataset = Dst.get_data(table_id=tableid, variables = selectedvariables)
-            #DATA.to_excel(savepath, sheet_name='Sheet1')
-        getdatabutton = ttk.Button(self, text = "Get Data", command = getdataset)
-        getdatabutton.place(x=600,y=650)
+                    selectedvariables.update({str(dict2[header]): list2})
+            savepath = "./"+str(tableid)+".csv"
+            Dst.get_csv(path = savepath, table_id=tableid, variables = selectedvariables)
+
+        readbutton = tk.Button(self, text = "Modify table", command = Get)
+        readbutton.place(x=300,y=600)
         
-        def savedataset():
-            savepath = "./"+str(tableid)+".xlsx"
-            dataset.to_excel(savepath, sheet_name="Sheet1")
-
-        savedatabutton = ttk.Button(self, text = "Save Data", command = savedataset)
-        savedatabutton.place(x=600,y=680)
-
-        selected = {}
+        #selected = {}
         #scrollable list
         def generate():
             for index, key in enumerate(dict1):
@@ -199,23 +183,25 @@ class PageTwo(tk.Frame):
                     label.place(x=50+290*(index-4), y=360)
                     checkboxlist_index = ScrollableFrame(self)
                     checkboxlist_index.place(x=50+290*(index-4), y=380)
-
-                    for index, value in enumerate(dict1[key]):
-                        is_selected = tk.BooleanVar()
-                        ttk.Checkbutton(checkboxlist_index.interior, text=value["text"], variable=is_selected).grid(row=index,column=0,sticky="W")
-                        selected[value["text"]] = is_selected
-
+                    lb1 = tk.Listbox(checkboxlist_index.interior,selectmode="extended")
+                    lb1.pack()
+                    for j, value in enumerate(dict1[key]):
+                        lb1.insert(j, value["text"])    
+                    
                 else:
                     label = tk.Label(self, text = key, font = SMALL_FONT)
                     label.place(x=50+290*index, y=80)
                     checkboxlist_index = ScrollableFrame(self)
                     checkboxlist_index.place(x=50+290*index,y=100)
-
-                    for index, value in enumerate(dict1[key]):
-                        is_selected = tk.BooleanVar()
-                        ttk.Checkbutton(checkboxlist_index.interior, text=value["text"], variable=is_selected).grid(row=index,column=0,sticky="W")
-                        selected[value["text"]] = is_selected
-        
+                    lb1 = tk.Listbox(checkboxlist_index.interior,selectmode="extended")
+                    lb1.pack()
+                    for j, value in enumerate(dict1[key]):
+                        lb1.insert(j, value["text"])
+                    
+                    
+                selecteddata = [lb1.get(index) for index in lb1.curselection()]
+                dict3.update({key:selecteddata})
+            
         button3 = ttk.Button(self, text = "generate lists", command = generate)
         button3.place(x=50,y=50)
 
@@ -235,9 +221,6 @@ class PageThree(tk.Frame):
         button2 = ttk.Button(self, text = "Reset")
         button2.place(x=1180,y=680)
 
-        clearallbutton = ttk.Button(self, text = "Clear All", command = lambda: controller.clearall(PageOne))
-        clearallbutton.place(x=20, y=650)
-
 class ScrollableFrame(tk.Frame):
     def __init__(self, master, **kwargs):
         tk.Frame.__init__(self, master, **kwargs)
@@ -254,6 +237,10 @@ class ScrollableFrame(tk.Frame):
         self.canvas.pack(side="left", fill="both", expand="true")
         self.vscrollbar.config(command=self.canvas.yview)
         self.hscrollbar.config(command=self.canvas.xview)
+
+        # reset the view
+        #self.canvas.xview_moveto(0)
+        #self.canvas.yview_moveto(0)
 
         # create a frame inside the canvas which will be scrolled with it
         self.interior = tk.Frame(self.canvas, **kwargs)
