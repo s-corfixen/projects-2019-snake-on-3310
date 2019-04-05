@@ -307,27 +307,30 @@ class PageThree(tk.Frame):
         graphmenuvariable.set(graphtypes[0])
 
         graphmenu = tk.OptionMenu(self, graphmenuvariable, *graphtypes)
-        graphmenu.place(x=800,y=100)
+        graphmenu.place(x=870,y=100)
 
         def makegraph():
             
             if graphmenuvariable.get()=="line":
                 datasetpivot.plot(kind="line")
                 plt.ylabel(var1.get())
+                plt.xlabel("Time")
                 plt.show()
             elif graphmenuvariable.get()=="stacked area":
                 datasetpivot.plot.area()
                 plt.ylabel(var1.get())
+                plt.xlabel("Time")
                 plt.show()
             elif graphmenuvariable.get()=="pct. stacked area":
                 datasetpivot_pct = datasetpivot.divide(datasetpivot.sum(axis=1), axis=0)
                 datasetpivot_pct.plot.area()
-                plt.ylabel(var1.get())
+                plt.ylabel("percent")
+                plt.xlabel("Time")
                 plt.show()            
         
 
         button = ttk.Button(self, text="Make Graph", command=makegraph)
-        button.place(x=870,y=102)     
+        button.place(x=810,y=105)     
 
         
 
