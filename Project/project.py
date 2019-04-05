@@ -71,47 +71,46 @@ class NokiaSnakeClient(tk.Tk):
         frame = self.frames[cont]
         frame.tkraise()
 
-#
+#Creating the PageOne class, which is our startpage.
 class PageOne(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-        label = tk.Label(self, text = "Choosing Dataset", font = LARGE_FONT)
-        label.pack(pady=10,padx=10)
+        #Creating the pagetitle
+        pagetitle = tk.Label(self, text = "Choosing Dataset", font = LARGE_FONT)
+        pagetitle.pack(pady=10,padx=10)
 
+        #We define a function next page, which raises different pages depending on the value of the menuvariable
         def nextpage():
-            if var1.get()==0:
+            if menuvariable.get()==0:
                 controller.show_frame(PageThree)
             else:
                 controller.show_frame(PageTwo)
 
-        #defining navigation button
-        button1 = ttk.Button(self, text = "Next Page", command = nextpage)
-        button1.place(x=1180,y=680)
-
+        #We create two buttons on pageone. The first runs the function nextpage.
+        nextbutton = ttk.Button(self, text = "Next Page", command = nextpage)
+        nextbutton.place(x=1180,y=680)
+        #The second runs the function clearall defined in the class NokiaSnake_client
         clearallbutton = ttk.Button(self, text = "Clear All", command = lambda: controller.clearall(PageOne))
         clearallbutton.place(x=20, y=650)
         
         
-        #Dataset list
-        var1 = tk.IntVar()
-        var1.set(1)
-        
-        #Making the list
-        datasets = ("NAN1"), ("Custom data")
+        #Menuvariable is created as an integer variables.
+        menuvariable = tk.IntVar()
+        menubuttonlabels = ["NAN1", "Custom data"]
         tk.Label(self, text="Choose Dataset to be used", justify = tk.LEFT, padx = 20).place(x=550, y=180)
 
         def LoadDataset():
-            if var1.get()==0:
+            if menuvariable.get()==0:
                 global dataset
                 dataset = Dst.get_data(table_id = "NAN1", variables={'TRANSAKT': ["*"], 'PRISENHED': ["*"], 'Tid': ["*"]}, lang="en")
 
             else:
                 popupmsg()
 
-        for val, dataset in enumerate(datasets):
+        for val, dataset in enumerate(menubuttonlabels):
             ttk.Radiobutton(self, 
                 text=dataset,
-                variable=var1, 
+                variable=menuvariable, 
                 command = LoadDataset,
                 value=val).place(x=600, y=200+val*20)
         
@@ -307,7 +306,7 @@ class PageThree(tk.Frame):
         graphmenuvariable.set(graphtypes[0])
 
         graphmenu = tk.OptionMenu(self, graphmenuvariable, *graphtypes)
-        graphmenu.place(x=870,y=100)
+        graphmenu.place(x=900,y=100)
 
         def makegraph():
             
