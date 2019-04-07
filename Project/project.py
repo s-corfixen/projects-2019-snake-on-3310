@@ -307,11 +307,12 @@ class PageThree(tk.Frame):
         generatebutton.place(x=50,y=20)
         
         #we create a textwindow from the scrollableframe class, which we use to display dataset statistics
-        textwindow = ScrollableFrame(self)
+        textwindow = ScrollableFrame(self, canvasheight=300, canvaswidth=600)
         textwindow.place(x=550,y=360)
+        text = tk.Text(textwindow.interior)
+        text.pack()
         #creating the text widget within the frame.
-        text = tk.Text(textwindow.interior, wrap="none", borderwidth=0)
-        text.pack(expand=True, fill="both")
+        
 
         #the function slicedata changes the NAN1 dataset based on the buttons pressed.
         def slicedata():
@@ -336,11 +337,13 @@ class PageThree(tk.Frame):
             
             #we create the datasetpivot as a wide dataframe
             datasetpivot = datasetsort1.pivot(index="TID", columns="TRANSAKT", values = "INDHOLD")
-            
             #We clear the textbox frame
             text.delete('1.0', tk.END)
             #and then add some statistics about datasetpivot
-            text.insert(tk.END, datasetpivot.describe())
+            for column in datasetpivot:
+                text.insert(tk.END, datasetpivot[column].describe())
+            textwindow.set_scrollregion()
+            
             #the textbox is somewhat buggy and may not function, so we include the print function below for reference.
             print(datasetpivot.describe())
 
@@ -388,7 +391,7 @@ class PageThree(tk.Frame):
 
 #The class scrollableframe is called to create an empty frame with scrollbars.
 class ScrollableFrame(tk.Frame):
-    def __init__(self, master,**kwargs):
+    def __init__(self, master, canvasheight=220, canvaswidth=200, **kwargs):
         tk.Frame.__init__(self, master, **kwargs)
 
         #note, self references to the class itself and saves the following under the class.
@@ -400,7 +403,7 @@ class ScrollableFrame(tk.Frame):
         self.hscrollbar.pack(side='bottom', fill="x",  expand="false")
 
         #create the canvas for the class
-        self.canvas = tk.Canvas(self, width=200, height=220, yscrollcommand=self.vscrollbar.set,
+        self.canvas = tk.Canvas(self, width=canvaswidth, height=canvasheight, yscrollcommand=self.vscrollbar.set,
                                 xscrollcommand=self.hscrollbar.set)
         self.canvas.pack(side="left", fill="both", expand="true")
 
