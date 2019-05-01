@@ -497,24 +497,25 @@ class graphwindow(tk.Tk):
             
             #we sort the data set based on the graphmenuvariable
             sortingbools = data[graphnames] == graphmenuvariable.get()
-            sorteddate = data.loc[sortingbools,:]
+            sorteddata = data.loc[sortingbools,:]
             
             #we split the y data in two. The positive dataset only contains values for y above 0, all other values are NaN.
             #vice versa for negative
-            positive = sorteddate[y].copy()
-            negative = sorteddate[y].copy()
+            positive = sorteddata[y].copy()
+            negative = sorteddata[y].copy()
             positive[positive<=0] = np.nan
             negative[negative> 0] = np.nan
             
             #We create the subplot for the y data as a column chart
-            addsubplot.bar(sorteddate[x], positive, color="g", width=0.5, alpha=0.5)
-            addsubplot.bar(sorteddate[x], negative, color="r", width=0.5, alpha=0.5)
-            addsubplot.set_xlabel(sorteddate[x].name)
-            addsubplot.set_ylabel(sorteddate[y].name)
+            addsubplot.bar(sorteddata[x], positive, color="g", width=0.5, alpha=0.5)
+            addsubplot.bar(sorteddata[x], negative, color="r", width=0.5, alpha=0.5)
+            addsubplot.set_xlabel(sorteddata[x].name)
+            addsubplot.set_ylabel(sorteddata[y].name)
+            
             
             #We create the subplot for the y2 data as a line chart
-            addsubplot2.plot(sorteddate[x], sorteddate[y2], color="b", linewidth=3)
-            addsubplot2.set_ylabel(sorteddate[y2].name)
+            addsubplot2.plot(sorteddata[x], sorteddata[y2], color="b", linewidth=3)
+            addsubplot2.set_ylabel(sorteddata[y2].name)
             addsubplot2.legend()
             
             #We set the title of the plot
@@ -525,7 +526,7 @@ class graphwindow(tk.Tk):
         #the updategraph button which runs the creategraph function
         updategraph = tk.Button(self, text="update", command= lambda: creategraph(data=data,x=x,y=y,y2=y2))
         updategraph.pack()
-        
+
         
 #In order to prevent the entire app from running when you import it in other files. The app only opens if you run this file
 if __name__ == "__main__":
