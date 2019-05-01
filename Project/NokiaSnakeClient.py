@@ -2,10 +2,16 @@ import tkinter as tk
 from tkinter import ttk
 import pandas as pd 
 import numpy as np 
+
+import matplotlib
+matplotlib.use("TkAgg")
 from matplotlib import pyplot as plt
 from matplotlib import style
+from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import pydst
+
+
 
 Dst = pydst.Dst(lang='en')
 
@@ -335,6 +341,59 @@ class ScrollableFrame(tk.Frame):
 
     def set_scrollregion(self, event=None):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+
+
+class graphwindow(tk.Tk):
+    def __init__(self, data, x, y, y2, graphnames, **kwargs):
+        tk.Tk.__init__(self, **kwargs)
+        
+        fig = Figure()
+        addsubplot = fig.add_subplot(1,1,1)
+        addsubplot2 = addsubplot.twinx()
+        
+        canvas = FigureCanvasTkAgg(fig, self)
+        canvas.get_tk_widget().pack(side=tk.BOTTOM,fill=tk.BOTH, expand = True)
+
+        toolbar = NavigationToolbar2Tk(canvas, self)
+        toolbar.update()
+        canvas._tkcanvas.pack(side=tk.TOP,fill=tk.BOTH, expand = True)
+            
+        graphs = sorted(data[graphnames].unique())
+        graphmenuvariable = tk.StringVar()
+        graphmenuvariable.set(graphs[0])
+        graphmenu = tk.OptionMenu(self, graphmenuvariable, *graphs)
+        graphmenu.pack()
+        
+        def creategraph(data, x, y, y2):
+            addsubplot.clear()
+            addsubplot2.clear()
+            
+            E = data[graphnames] == graphmenuvariable.get()
+            px = data.loc[E,:]
+            
+            positive = px[y].copy()
+            negative = px[y].copy()
+            
+            positive[positive<=0] = np.nan
+            negative[negative> 0] = np.nan
+            
+            addsubplot.bar(px[x], positive, color="g", width=0.5, alpha=0.5)
+            addsubplot.bar(px[x], negative, color="r", width=0.5, alpha=0.5)
+            addsubplot.set_xlabel(px[x].name)
+            addsubplot.set_ylabel(px[y].name)
+            
+            addsubplot2.plot(px[x], px[y2], color="b", linewidth=3)
+            addsubplot2.set_ylabel(px[y2].name)
+            addsubplot2.legend()
+            
+            addsubplot.set_title(graphmenuvariable.get())
+            canvas.draw()
+
+        
+        button = tk.Button(self, text="update", command= lambda: creategraph(data=data,x=x,y=y,y2=y2))
+        button.pack()
+        
+        
 
 if __name__ == "__main__":
     app = NokiaSnakeClient()

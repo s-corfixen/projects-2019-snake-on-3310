@@ -1,18 +1,13 @@
-import tkinter as tk
-from tkinter import ttk
-import pandas as pd 
-import numpy as np 
-from matplotlib import pyplot as plt
-import pydst
-from matplotlib import style
+from tkinter import *
 
-Dst = pydst.Dst(lang='en')
+def func(value):
+    print(value)
 
-nan1 = Dst.get_data(table_id = "NAN1", variables={'TRANSAKT': ["*"], 'PRISENHED': ["*"], 'Tid': ["*"]})
-nan1["INDHOLD"] = pd.to_numeric(nan1["INDHOLD"], errors="coerce")
-nan1.dropna(inplace=True)
-#print(nan1.groupby("TID")["INDHOLD"].mean().head(10))
-nan1sort = nan1[nan1["PRISENHED"]=="Current prices, (bill. DKK.)"]
-nan1slice = nan1sort.pivot(index="TID", columns="TRANSAKT", values = "INDHOLD")
-nan1slice.plot(kind="line")
-plt.show()
+root = Tk()
+options = ["1", "2", "3"]
+var = StringVar()
+drop = OptionMenu(root, var, *options, command=func)
+drop.place(x=10, y=10)
+
+
+root.mainloop()
