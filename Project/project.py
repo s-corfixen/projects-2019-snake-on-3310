@@ -336,6 +336,7 @@ class ScrollableFrame(tk.Frame):
     def set_scrollregion(self, event=None):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
-app = NokiaSnakeClient()
-app.geometry("1280x720")
-app.mainloop()
+if __name__ == "__main__":
+    app = NokiaSnakeClient()
+    app.geometry("1280x720")
+    app.mainloop()
