@@ -30,6 +30,7 @@ class DataPlotter:
         currentplot.set_xlabel(xaxisname)
         currentplot.set_ylabel(yaxisname)
         currentplot.grid(True)
+        currentplot.legend()
         self.subplots[plotname]=currentplot
 
     def addcandlestick(self,data,plotname):
