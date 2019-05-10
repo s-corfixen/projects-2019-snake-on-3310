@@ -60,7 +60,7 @@ class DataPlotter:
 
 
 class PlotterWindow:
-    def __init__(self, data, slicename, xvariable, yvariablelist, lineplots, xsize=1280, ysize=720):
+    def __init__(self, data, slicename, xvariable, yvariablelist, graphtype, xsize=1280, ysize=720):
 
         self.xsize = xsize
         self.ysize = ysize
@@ -69,7 +69,7 @@ class PlotterWindow:
         self.xvariable = xvariable
         self.yvariablelist = yvariablelist
         
-        self.lineplots = lineplots
+        self.graphtype = graphtype
 
 
         self.window = tk.Tk()
@@ -111,7 +111,7 @@ class PlotterWindow:
         self.plotter.figuretitle(graphnamekey)
         newplotdata = self.data.loc[self.data[self.slicename] == graphnamekey,:]
 
-        if self.lineplots:
+        if self.graphtype=="piplot":
             for index, yvariable in enumerate(self.yvariablelist):
                 self.plotter.addlineplot(newplotdata[[self.xvariable,yvariable]],"plot"+str(index+1))
 
