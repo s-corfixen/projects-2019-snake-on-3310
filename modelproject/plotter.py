@@ -9,6 +9,7 @@ from matplotlib import pyplot as plt
 from matplotlib import style
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+from mpl_finance import candlestick_ochl
 import pydst
 
 
@@ -20,17 +21,24 @@ class DataPlotter:
         self.fig = figure
         self.subplots = {}
     
-    def addlineplot(self,data,plotname):
+    def addlineplot(self,data,plotname,**kwargs):
         axiskeys = data.keys()
         xaxisname = axiskeys[0]
         yaxisname = axiskeys[1]
         currentplot = self.fig.add_subplot(1,1,1)
-        currentplot.plot(data[xaxisname],data[yaxisname])
+        currentplot.plot(data[xaxisname],data[yaxisname], **kwargs)
         currentplot.set_xlabel(xaxisname)
         currentplot.set_ylabel(yaxisname)
         currentplot.grid(True)
         self.subplots[plotname]=currentplot
-        
+
+    def addcandlestick(self,data,plotname):
+        currentplot = self.fig.add_subplot(1,1,1)
+        candlestick_ochl(currentplot,data,colorup="g")
+        currentplot.set_xlabel("Iteration")
+        currentplot.grid(True)
+        self.subplots[plotname]=currentplot
+    
     def addtwinxlineplot(self, data, plotname,color="b"):
         axiskeys = data.keys()
         xaxisname = axiskeys[0]
@@ -60,7 +68,7 @@ class DataPlotter:
 
 
 class PlotterWindow:
-    def __init__(self, data, slicename, xvariable, yvariablelist, lineplots, xsize=1280, ysize=720):
+    def __init__(self, data, slicename, graphtype, xvariable=None, yvariablelist=None, xsize=1280, ysize=720):
 
         self.xsize = xsize
         self.ysize = ysize
@@ -69,7 +77,7 @@ class PlotterWindow:
         self.xvariable = xvariable
         self.yvariablelist = yvariablelist
         
-        self.lineplots = lineplots
+        self.graphtype = graphtype
 
 
         self.window = tk.Tk()
@@ -111,9 +119,26 @@ class PlotterWindow:
         self.plotter.figuretitle(graphnamekey)
         newplotdata = self.data.loc[self.data[self.slicename] == graphnamekey,:]
 
-        if self.lineplots:
+        if self.graphtype=="piplot":
             for index, yvariable in enumerate(self.yvariablelist):
                 self.plotter.addlineplot(newplotdata[[self.xvariable,yvariable]],"plot"+str(index+1))
+        
+        if self.graphtype=="candlestick":
+            lower = 0
+            upper = len(list(newplotdata["bid"]))
+            ochl = []
+            iteration = list(newplotdata["Iteration"])
+            bid = list(newplotdata["bid"])
+            ask = list(newplotdata["ask"])
+            for lower in range(upper):
+                append = iteration[lower], bid[lower], ask[lower], ask[lower], bid[lower]
+                ochl.append(append)
+            
+            self.plotter.addcandlestick(ochl, "candlestick")
+            if self.xvariable!=None and self.yvariablelist!= None:
+                for index, yvariable in enumerate(self.yvariablelist):
+                    self.plotter.addlineplot(newplotdata[[self.xvariable,yvariable]],"lineplot"+str(index+1), color="#FFA500")
+            
 
 
     #graphs = sorted(data[graphnames].unique())
